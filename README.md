@@ -601,7 +601,7 @@ World Cup Data Control Tower
 Link del dashboard:
 
 ```text
-[Agregar aquí el enlace de Looker Studio]
+https://datastudio.google.com/reporting/41fa5555-1687-4a2b-918c-0b8321cbea44
 ```
 
 ---
