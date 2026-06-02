@@ -93,60 +93,57 @@ Construir un pipeline automatizado y documentado que permita:
 ---
 
 # Arquitectura general
+## Diagrama de flujo detallado
 
-```text
-┌─────────────────────┐
-│   API-Football      │
-│ Fixtures / Teams    │
-│ Standings           │
-└──────────┬──────────┘
-           │
-           │ Python
-           ▼
-┌─────────────────────┐
-│ Local extraction    │
-│ data/raw            │
-│ data/processed      │
-│ data/eda            │
-└──────────┬──────────┘
-           │
-           │ Upload
-           ▼
-┌─────────────────────┐
-│ Google Cloud Storage│
-│ Bronze layer        │
-└──────────┬──────────┘
-           │
-           │ External Tables
-           ▼
-┌─────────────────────┐
-│ BigQuery External   │
-│ ext_* tables        │
-└──────────┬──────────┘
-           │
-           │ Scheduled Query
-           ▼
-┌─────────────────────┐
-│ BigQuery Silver     │
-│ Clean + deduped     │
-└──────────┬──────────┘
-           │
-           │ Scheduled Query
-           ▼
-┌─────────────────────┐
-│ BigQuery Gold       │
-│ Analytics tables    │
-└──────────┬──────────┘
-           │
-           │ BigQuery connector
-           ▼
-┌─────────────────────┐
-│ Looker Studio       │
-│ Dashboard           │
-└─────────────────────┘
-```
+┌──────────────────────────────────────────────────────────────┐
+│                    FUENTE DE DATOS                           │
+│  API-Football v3  │  /fixtures  │  /teams  │  /standings     │
+└─────────────────────────┬────────────────────────────────────┘
+                          │ HTTP GET (Python requests)
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│                  EXTRACCIÓN LOCAL                            │
+│  extract.py  →  data/raw/run_id=TIMESTAMP/                   │
+│  eda_local.py  →  data/processed/ (.csv + .parquet)          │
+│  eda_summary.py  →  data/eda/ (perfiles de calidad)          │
+└─────────────────────────┬────────────────────────────────────┘
+                          │ google-cloud-storage SDK
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│              BRONZE — Google Cloud Storage                   │
+│  gs://mci506-worldcup/bronze/raw/        ← JSON crudo        │
+│  gs://mci506-worldcup/bronze/processed/  ← CSV + Parquet     │
+│  gs://mci506-worldcup/bronze/eda/        ← Perfiles calidad  │
+└─────────────────────────┬────────────────────────────────────┘
+                          │ BigQuery External Tables
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│              SILVER — BigQuery                               │
+│  silver_fixtures   ← SAFE_CAST + deduplicación incremental   │
+│  silver_teams      ← WHERE NOT EXISTS                        │
+│  silver_standings  ← Tipos validados                         │
+└─────────────────────────┬────────────────────────────────────┘
+                          │ Scheduled Query (06:45 UTC)
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│              GOLD — BigQuery                                 │
+│  gold_tournament_overview  ← Resumen general                 │
+│  gold_matches_by_round     ← Partidos por ronda              │
+│  gold_venue_load           ← Carga por estadio               │
+│  gold_team_performance     ← Rendimiento por equipo          │
+│  gold_pipeline_quality     ← Score de calidad                │
+└─────────────────────────┬────────────────────────────────────┘
+                          │ BigQuery connector
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│              VISUALIZACIÓN — Looker Studio                   │
+│  4 páginas: Resumen │ Sedes │ Equipos │ Calidad pipeline     │
+└──────────────────────────────────────────────────────────────┘
 
----
+Automatización:
+  GitHub Actions  (06:00 UTC) → extrae y carga a GCS
+  Scheduled Query silver (06:30 UTC) → actualiza Silver
+  Scheduled Query gold   (06:45 UTC) → actualiza Gold
 
 # Stack utilizado
 
