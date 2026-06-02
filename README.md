@@ -95,6 +95,7 @@ Construir un pipeline automatizado y documentado que permita:
 # Arquitectura general
 ## Diagrama de flujo detallado
 
+```
 ┌──────────────────────────────────────────────────────────────┐
 │                    FUENTE DE DATOS                           │
 │  API-Football v3  │  /fixtures  │  /teams  │  /standings     │
@@ -144,7 +145,7 @@ Automatización:
   GitHub Actions  (06:00 UTC) → extrae y carga a GCS
   Scheduled Query silver (06:30 UTC) → actualiza Silver
   Scheduled Query gold   (06:45 UTC) → actualiza Gold
-
+```
 # Stack utilizado
 
 | Componente | Herramienta | Uso |
