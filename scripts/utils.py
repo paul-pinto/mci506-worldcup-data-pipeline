@@ -84,3 +84,56 @@ def save_metadata(entity: str, payload: Dict[str, Any], output_path: str) -> Non
     }
 
     save_json(metadata, output_path)
+
+    def log_extraction_summary(entity: str, results: int, output_path: str) -> None:
+    """
+    Print a standardized summary after each extraction.
+
+    Args:
+        entity: Name of the extracted entity (fixtures, teams, standings).
+        results: Number of records extracted.
+        output_path: Path where the file was saved.
+    """
+    print(f"[{utc_now_str()}] ✓ {entity}: {results} records → {output_path}")
+
+
+def validate_response(payload: Dict[str, Any], entity: str) -> bool:
+    """
+    Validate that API response contains results.
+
+    Args:
+        payload: Parsed JSON response from API.
+        entity: Name of the entity being validated.
+
+    Returns:
+        True if valid, False otherwise.
+    """
+    results = payload.get("results", 0)
+    if results == 0:
+        print(f"[WARNING] No results returned for entity: {entity}")
+        return False
+    return True
+
+
+def build_run_id() -> str:
+    """
+    Generate a unique run ID based on UTC timestamp.
+    Used for partitioning raw files by execution.
+
+    Returns:
+        Run ID string in format run_id=YYYYMMDDTHHMMSSZ
+    """
+    return f"run_id={utc_now_str()}"
+
+
+def list_json_files(directory: str) -> list:
+    """
+    List all JSON files in a directory recursively.
+
+    Args:
+        directory: Root directory to search.
+
+    Returns:
+        List of absolute paths to JSON files.
+    """
+    return [str(p) for p in Path(directory).rglob("*.json")]
