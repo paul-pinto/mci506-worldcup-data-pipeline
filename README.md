@@ -158,6 +158,7 @@ Automatización:
 | Visualización | Looker Studio | Dashboard final |
 | Control de versiones | GitHub | Repositorio público y colaboración |
 | Gestión de configuración | `.env` / GitHub Secrets | Variables sensibles y parámetros |
+| Notificaciones | Slack Webhooks | Alertas de fallos críticos en el pipeline |
 
 ---
 
@@ -730,6 +731,14 @@ Se crearon dos consultas programadas:
 | gold_aggregations_daily | Diaria | 06:45 | Actualiza Gold |
 
 La separación horaria permite que primero se actualicen las tablas Silver y luego se recalculen las tablas Gold.
+
+---
+
+## 3. Observabilidad y Alertas (Slack)
+
+El pipeline cuenta con un sistema de observabilidad activa integrado directamente en el flujo de GitHub Actions. Para garantizar la integridad del sistema y una respuesta rápida ante incidentes, se configuró una alerta automatizada mediante Webhooks. 
+
+Si el proceso de extracción o las pruebas unitarias fallan en la capa Bronze (por ejemplo, por indisponibilidad de la API-Football o caducidad de credenciales), el orquestador captura el evento crítico (`if: failure()`) e inmediatamente notifica al equipo de desarrollo a través de un canal de Slack. Esto previene que el pipeline falle en silencio y asegura una rápida ejecución del plan de recuperación.
 
 ---
 
