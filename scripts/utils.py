@@ -85,7 +85,7 @@ def save_metadata(entity: str, payload: Dict[str, Any], output_path: str) -> Non
 
     save_json(metadata, output_path)
 
-    def log_extraction_summary(entity: str, results: int, output_path: str) -> None:
+def log_extraction_summary(entity: str, results: int, output_path: str) -> None:
     """
     Print a standardized summary after each extraction.
 
